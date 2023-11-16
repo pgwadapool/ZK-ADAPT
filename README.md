@@ -12,14 +12,17 @@ qLORADecentralizedML is a pioneering project that integrates Quantized Low-Rank 
 ## Design Document
 For detailed information about the methodologies, experimental setup, and results of this project, refer to our design document, which is the published paper on this topic. You can find it in the [design_docs](/design_docs) folder.
 
-## Getting Started
-TBD
 
 ### Prerequisites
-- TBD
+- Cardano node (testnet)
+- Hydra node
+- Python and MNIST dataset
+- Storj access
 
 ### Installation
 Step-by-step guide on setting up the project environment.
+
+**This will be updated later**
 
 ```bash
 # Example commands for installation
