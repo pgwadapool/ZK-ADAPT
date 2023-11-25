@@ -25,4 +25,17 @@ Step-by-step guide on setting up the project environment.
 **This will be updated later**
 
 ```bash
-# Example commands for installation
+# Clone this repository and install the requirements.txt
+# Following env variables have to be set for Storj access
+MY_API_KEY
+MY_SATELLITE
+MY_BUCKET
+MY_STORJ_UPLOAD_PATH
+MY_ENCRYPTION_PASSPHRASE
+
+# To run the sample example mnist (without hydra)
+cd code
+python3 mnist_n.py
+```
+
+
