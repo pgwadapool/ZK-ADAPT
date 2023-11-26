@@ -82,7 +82,7 @@ optimizer_nesterov = optim.SGD(model.parameters(), lr=0.01, momentum=0.9, nester
 Alternatively, we can employ the Adam optimizer, which adapts learning rates for each parameter:
 
 ```
-Copy code
+
 optimizer_adam = optim.Adam(model.parameters(), lr=0.001)
 ```
 
