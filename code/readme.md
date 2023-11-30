@@ -1,4 +1,4 @@
-In this simplified TLA+ specification for distributed training:
+In this simplified TLA+ specification (design.tla) for distributed training:
 
 1) We define two agents, Agent1 and Agent2, each with its own model (Agent1Model and Agent2Model). The goal is for both agents to train their models to match at the end of training.
 
