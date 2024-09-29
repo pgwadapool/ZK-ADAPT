@@ -1,3 +1,11 @@
+"""
+A WebSocket client for interacting with a Hydra node.
+
+This class establishes a connection to a specified WebSocket URL and listens for incoming messages.
+Currently, it processes the "Greetings" message and logs it to the console. Additional message
+handling can be implemented as needed.
+"""
+
 import websocket
 import json
 import threading
@@ -5,6 +13,12 @@ import threading
 # Define functions for WebSocket events
 def on_message(ws, message):
     print("Received from Hydra:", message)
+    data = json.loads(message)
+        if data.get("tag") == "Greetings":
+            print("Received Greetings message:", data)
+            # Handle the Greetings message as needed
+        else:
+            print("Unexpected message:", data)
 
 def on_error(ws, error):
     print("Error from Hydra:", error)
