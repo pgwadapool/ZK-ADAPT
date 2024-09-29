@@ -32,7 +32,20 @@ The TLA+ module encapsulates the logic for opening and closing Hydra heads and h
 - **`SendTransaction(party)`**: Represents a party sending a transaction to the Hydra head.
 - **`CloseHydraHead`**: Models closing the Hydra head.
 
+## zkp.tla Gradient Encryption and Zero-Knowledge Proofs in TLA+ ##
 
+**Overview**
+
+This project implements a zero-knowledge proof system for verifying encrypted gradients using Paillier homomorphic encryption. The main goal is to ensure the integrity of the encrypted gradients without revealing their actual values.
+
+**Components**
+
+The implementation is divided into several key components:
+
+1. **Key Generation**: Generates a public and private key pair for encryption.
+2. **Gradient Encryption**: Encrypts gradients using the Paillier encryption scheme.
+3. **Zero-Knowledge Proof Protocol**: Implements the Sigma Protocol for proof generation and verification.
+4. **Hashing**: A function to generate challenges for the zero-knowledge proof.
 
 
 ## Usage
