@@ -49,25 +49,33 @@ class HydraComm:
         return stdout.decode().strip()
 
     async def check_utxo(self):
-        """Continuously check the UTXO and compare the Lovelace value."""
         while True:
             async with aiohttp.ClientSession() as session:
                 async with session.get("http://127.0.0.1:4001/snapshot/utxo") as response:
+                    print(f"Response status: {response.status}")
+                
+                    # Read the response text directly
+                    response_text = await response.text()
+                
                     if response.status == 200:
-                        data = await response.json()
-                        # Filter based on the specified address
-                        total_lovelace = 0
+                        try:
+                            # Attempt to parse the response text as JSON
+                            data = json.loads(response_text)
+                        
+                            # Your filtering logic here
+                            filtered_utxo = {k: v for k, v in data.items() if v["address"] == self.get_address()}
+                            if filtered_utxo:
+                                lovelace_value = list(filtered_utxo.values())[0]['value']['lovelace']
+                                print(f"Lovelace value: {lovelace_value}")
+                                if lovelace_value >= self.threshold:
+                                    break  # Exit the loop when threshold is met
+                        except json.JSONDecodeError:
+                            print("Failed to decode JSON response.")
+                            print(f"Response text: {response_text}")
+                    else:
+                        print(f"Unexpected response status: {response.status}")
+                        print(f"Response text: {response_text}")
 
-                        # Iterate through the UTXO entries
-                        for utxo in data.values():
-                            if utxo["address"] == address:
-                                total_lovelace += utxo["value"]["lovelace"]
-
-                        print(f"Total Lovelace for address {address}: {total_lovelace}")
-
-                        # Check against the threshold
-                        if total_lovelace >= self.threshold:
-                            break
             await asyncio.sleep(5)  # Adjust the sleep time as necessary
 
     def get_address(self):
@@ -93,13 +101,18 @@ async def run_hydra_comm():
 
     # Step 1: Send Init message
     #await hydra_comm.send_message('{"tag": "Init"}')
-
+    utxo_command = (
+        f"curl -s 127.0.0.1:4001/snapshot/utxo "
+        f"| jq \"with_entries(select(.value.address == \\\"$(cat {address_file})\\\"))\" "
+        f"> utxo.json"
+    )
+    await hydra_comm.execute_command(utxo_command)
     # Step 2: Wait for HeadIsOpen message
     await hydra_comm.head_is_open_received.wait()
     print(" Head is open")
     # Step 3a: Build the raw transaction
     build_command = (
-        "cardano-cli transaction build-raw "
+        "cardano-cli conway transaction build-raw "
         f"--tx-in $(jq -r 'to_entries[0].key' < utxo.json) "
         f"--tx-out $(cat {output_address_file})+{hydra_comm.lovelace_value} "
         f"--tx-out $(cat {address_file})+$(jq 'to_entries[0].value.value.lovelace - {hydra_comm.lovelace_value}' < utxo.json) "
@@ -109,7 +122,7 @@ async def run_hydra_comm():
 
     # Step 3b: Sign the transaction
     sign_command = (
-        "cardano-cli transaction sign "
+        "cardano-cli conway transaction sign "
         "--tx-body-file tx.json "
         f"--signing-key-file credentials/{address_file.split('/')[-1].replace('addr', 'sk')} "
         "--out-file tx-signed.json"
