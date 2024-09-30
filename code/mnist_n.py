@@ -87,17 +87,25 @@ trainloaders = load_data(n_parties)
 models = [SimpleNN() for _ in range(n_parties)]
 
 # Train each model on its respective data. j is communication rounds.
+# This is the place where Hydra is Initialized.
+
 for j in range(5):
     print(f'Start of Training epoch {j}')
     for i, model in enumerate(models):
         models[i] = train_model(model, trainloaders[i])
         save_model(model, f'model_client{i}_state_dict.pt')
+        # If encryption is needed 
+        # zkp.load_and_encrypt_gradients(model_client{i}_state_dict.pt)
         upload_storj(f'model_client{i}_state_dict.pt', f"storj_path_{i}")
+        #Send a message to Hydra participants
+        #run_hydra_comm()
 
 # Download and aggregate weights
     state_dicts = []
     for i in range(n_parties):
         download_storj(f"storj_path_{i}", f"Dmodel_client{i}_state_dict.pt")
+        # Decrypt gradients
+        # decrypted_gradients = zkp.decrypt_gradients(encrypted_gradients)
         state_dicts.append(torch.load(f'Dmodel_client{i}_state_dict.pt'))
 
     test_set = torchvision.datasets.MNIST(root='./data', train=False, download=True, transform=transforms.ToTensor())
