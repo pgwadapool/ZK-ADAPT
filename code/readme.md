@@ -47,6 +47,28 @@ The implementation is divided into several key components:
 3. **Zero-Knowledge Proof Protocol**: Implements the Sigma Protocol for proof generation and verification.
 4. **Hashing**: A function to generate challenges for the zero-knowledge proof.
 
+## Threshold ZKP 
+
+**Key Generation:**
+
+The action KeyGen generates the public_key and splits the private key into private_key_shares (one for each participant).
+
+**Encryption:**
+
+EncryptGradients(grad) models the encryption of a gradient. It appends the encrypted gradient to the list of encrypted_gradients.
+
+**Partial Decryption:**
+
+Each participant performs a partial decryption on an encrypted gradient. The partial decryption is stored in partial_decryptions.
+
+**Combining Partial Decryptions:**
+Once the threshold number of partial decryptions is reached, the action CombineDecryptions(enc_grad) combines the partial decryptions to recover the original gradient. If fewer than the threshold number of shares are present, CannotDecrypt(enc_grad) ensures no decryption happens.
+
+**Invariants:**
+
+ThresholdMet: This invariant ensures that a gradient is decrypted only if the threshold number of shares is reached.
+
+NoPrematureDecryption: This invariant ensures that a gradient cannot be decrypted prematurely if fewer than the threshold number of shares is available.
 
 ## Usage
 
