@@ -72,6 +72,22 @@ reconstructed_secret = subset_of_participants[0].reconstruct_secret(shares_to_re
 ```
   
 **Run the Gradient Encryption and ZKP Program:**
+
 Refer to the ThresholdPallierZkp.py file to run the program for encrypting and decrypting gradients with ZKP.
+
+
+# WorkFlow
+1. Particpants agree on training requirements and Start Hydra Head. Look at Hydra.family to start hydra head
+2. Once Head is initialized, then use Key generation and share the public keys needed for encryption etc. Look at the trusted_kg_helper.py or dkg_helper.py
+4. Create Storj Storage. Have one bucket per participant with approriate permissions. Use Storj website
+5. Start the training for one epoch. An example is mnnist_n.py
+6. Encrypt the gradient and also the proof. ThresholdPallierZkp.py
+7. Upload them to Stroj bucket. Look at storj_utils.py
+8. Send a  transaction on hydra head to indicate epoch is completed. Look at hydra_messaging.py
+9. Keep snooping for all other participant transaction This is also shown in hydra_messgaing.py
+10. Once this is done repeat step 5 to 9.
+11. After agreed spochs are done, send Close and Fanout transaction
+12. If needed ensure periodically you update the key if using Additive secret sharing.
+
 
 
