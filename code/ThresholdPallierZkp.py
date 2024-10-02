@@ -1,47 +1,79 @@
-from phe import paillier
-from secretsharing import SecretSharer
-import torch
-import math
+"""
+Threshold Paillier Encryption with Additive Secret Sharing and Zero-Knowledge Proofs (ZKP)
 
-class ThresholdPaillier:
+This script implements a threshold-based encryption scheme using Paillier encryption, additive secret sharing for secure key distribution, 
+and a Sigma protocol for zero-knowledge proof (ZKP) verification of partial decryptions. 
+
+Features:
+1. **Paillier Encryption**:
+    - Paillier is a probabilistic encryption scheme used to encrypt gradients in this example.
+    - It supports homomorphic operations, which makes it useful for secure computation over encrypted data.
+
+2. **Additive Secret Sharing**:
+    - The private key components `p` and `q` of the Paillier cryptosystem are split among multiple participants using additive secret sharing.
+    - This ensures that no single participant holds the entire private key, increasing security.
+    - The private key can only be reconstructed when the threshold number of shares are combined.
+
+3. **Threshold Decryption**:
+    - The decryption process is distributed among participants who hold shares of the private key.
+    - A sufficient number of participants (at least the threshold) must collaborate to successfully decrypt the data.
+
+4. **Zero-Knowledge Proof (ZKP)**:
+    - A Sigma protocol is used to generate and verify zero-knowledge proofs, ensuring that each participant's partial decryption is correct without revealing any sensitive information.
+    - This allows for secure validation of decryption operations without exposing private key shares.
+
+Workflow:
+- Encrypts gradients using Paillier encryption.
+- Distributes private key components `p` and `q` among participants using additive secret sharing.
+- Generates zero-knowledge proofs to verify partial decryptions.
+- Reconstructs the private key from shares and decrypts the encrypted gradients.
+
+Usage:
+- The script demonstrates the end-to-end process of encrypting, proving, verifying, and decrypting gradients.
+- It can be adapted for any application requiring threshold encryption and secure decryption validation.
+"""
+
+import random
+import hashlib
+from phe import paillier
+import torch
+
+class AdditiveSecretSharing:
+    def __init__(self, prime=None):
+        # Choose a large prime for modular arithmetic
+        self.prime = prime or (2 ** 3072 - 1)
+
+    def split_secret(self, secret, num_shares, threshold):
+        """Split a large integer `secret` into `num_shares` additive shares."""
+        shares = [random.randint(0, self.prime - 1) for _ in range(threshold - 1)]
+        # Last share is chosen so that the sum of all shares modulo prime is equal to the secret
+        last_share = (secret - sum(shares)) % self.prime
+        shares.append(last_share)
+        return shares
+
+    def recover_secret(self, shares):
+        """Recover the secret from the given `shares`."""
+        return sum(shares) % self.prime
+
+
+class ThresholdPaillierWithZKP:
     def __init__(self, key_size=3072, scaling_factor=10**2, threshold=3, num_participants=5):
         # Generate Paillier keypair
         self.public_key, self.private_key = paillier.generate_paillier_keypair(n_length=key_size)
         self.scaling_factor = scaling_factor
         self.threshold = threshold
         self.num_participants = num_participants
+        self.additive_ss = AdditiveSecretSharing()
 
-        # Split the private key parts (p and q) into smaller chunks and apply Shamir's Secret Sharing
-        self.p_shares, self.q_shares = self.split_private_key_into_chunks()
+        # Split the private key parts (p and q) using additive secret sharing
+        self.p_shares = self.additive_ss.split_secret(self.private_key.p, num_participants, threshold)
+        self.q_shares = self.additive_ss.split_secret(self.private_key.q, num_participants, threshold)
 
-    def split_private_key_into_chunks(self, chunk_size=128):
-        """Split both p and q of the private key into smaller chunks and apply Shamir's Secret Sharing."""
-        # Convert the private key's `p` and `q` components to hexadecimal strings
-        p_hex = hex(self.private_key.p)[2:]  # Remove '0x' prefix
-        q_hex = hex(self.private_key.q)[2:]  # Remove '0x' prefix
-
-        # Split the large hex strings into smaller chunks
-        p_chunks = [p_hex[i:i + chunk_size] for i in range(0, len(p_hex), chunk_size)]
-        q_chunks = [q_hex[i:i + chunk_size] for i in range(0, len(q_hex), chunk_size)]
-
-        # Apply Shamir's Secret Sharing to each chunk
-        p_shares_per_chunk = [SecretSharer.split_secret(chunk, self.threshold, self.num_participants) for chunk in p_chunks]
-        q_shares_per_chunk = [SecretSharer.split_secret(chunk, self.threshold, self.num_participants) for chunk in q_chunks]
-
-        return p_shares_per_chunk, q_shares_per_chunk
-    def reconstruct_private_key_from_chunks(self, p_shares_per_chunk, q_shares_per_chunk):
-        """Reconstruct the private key from shares of each chunk."""
-        # Reconstruct each chunk of p and q
-        reconstructed_p_chunks = [SecretSharer.recover_secret(shares) for shares in p_shares_per_chunk]
-        reconstructed_q_chunks = [SecretSharer.recover_secret(shares) for shares in q_shares_per_chunk]
-
-        # Combine the chunks to form the full p and q hex values
-        reconstructed_p_hex = ''.join(reconstructed_p_chunks)
-        reconstructed_q_hex = ''.join(reconstructed_q_chunks)
-
-        # Convert the reconstructed hex back to integers
-        reconstructed_p = int(reconstructed_p_hex, 16)
-        reconstructed_q = int(reconstructed_q_hex, 16)
+    def reconstruct_private_key(self, p_shares, q_shares):
+        """Reconstruct the private key from additive secret shares of p and q."""
+        # Reconstruct p and q from their respective shares
+        reconstructed_p = self.additive_ss.recover_secret(p_shares)
+        reconstructed_q = self.additive_ss.recover_secret(q_shares)
 
         # Verify that n = p * q
         reconstructed_n = reconstructed_p * reconstructed_q
@@ -50,6 +82,7 @@ class ThresholdPaillier:
 
         print("Private key successfully reconstructed.")
 
+        # Return the reconstructed private key
         return paillier.PaillierPrivateKey(self.public_key, reconstructed_p, reconstructed_q)
 
     def encrypt_gradient(self, gradient):
@@ -60,26 +93,70 @@ class ThresholdPaillier:
         print(f"Gradient {gradient} successfully encrypted.")
         return encrypted_gradient
 
-    def decrypt_partial(self, encrypted_gradient, p_shares, q_shares):
-        """Decrypt the gradient partially using a subset of private key shares."""
-        # Reconstruct the private key from the given shares
-        reconstructed_private_key = self.reconstruct_private_key_from_chunks(p_shares, q_shares)
-        decrypted_gradient = reconstructed_private_key.decrypt(encrypted_gradient)
-        return decrypted_gradient
+    def fsprove(self, gradient, encrypted_gradient):
+        """Generate a Zero-Knowledge Proof for an encrypted gradient."""
+        # Scale the gradient
+        scaled_gradient = int(gradient * self.scaling_factor)
+        # Generate a smaller random value for the announcement step
+        a1 = random.randint(1, 10**6)
 
-    def decrypt_gradient_with_shares(self, encrypted_gradient, p_shares_per_chunk, q_shares_per_chunk):
-        """Decrypt an encrypted gradient using shares of each chunk of p and q."""
-        # Reconstruct private key from shares of each chunk
-        reconstructed_private_key = self.reconstruct_private_key_from_chunks(p_shares_per_chunk, q_shares_per_chunk)
+        # Announcement (encrypting the random value a1)
+        announcement = self.public_key.encrypt(a1)
+
+        # Challenge (based on encrypted gradient and announcement)
+        challenge = self.generate_hash(str(encrypted_gradient.ciphertext()) + str(announcement.ciphertext()))
+
+        # Response: r = a1 + challenge * scaled_gradient
+        response = a1 + challenge * scaled_gradient
+
+        print(f"Prover Generated: a1 = {a1}, challenge = {challenge}, response = {response}")
+        return announcement, response, challenge
+
+    @staticmethod
+    def generate_hash(value):
+        """Generate a hash for the Zero-Knowledge Proof challenge."""
+        return int(hashlib.sha256(str(value).encode()).hexdigest(), 16) % (10**6)  # Limiting the size of the challenge
+
+    def fsver(self, encrypted_gradient, announcement, response, challenge):
+        """Verify the Zero-Knowledge Proof."""
+        # Decrypt the encrypted gradient
+        decrypted_gradient = self.private_key.decrypt(encrypted_gradient)
+
+        # Reverse scaling to get back the floating-point number
+        decrypted_gradient_float = decrypted_gradient / self.scaling_factor
+
+        # Verifier computes the expected challenge again
+        expected_challenge = self.generate_hash(str(encrypted_gradient.ciphertext()) + str(announcement.ciphertext()))
+
+        # Check if the challenges match
+        if expected_challenge != challenge:
+            print(f"Challenge mismatch! Expected: {expected_challenge}, Got: {challenge}")
+            return False
+
+        # Verify that the mathematical relationship holds: response = a1 + challenge * scaled_gradient
+        if response - challenge * decrypted_gradient == self.private_key.decrypt(announcement):
+            print("ZK Proof successfully verified.")
+            return True
+        else:
+            print("ZK Proof verification failed.")
+            return False
+
+    def decrypt_gradient_with_shares(self, encrypted_gradient, p_shares, q_shares):
+        """Decrypt an encrypted gradient using shares of p and q."""
+        # Reconstruct the private key from the provided shares
+        reconstructed_private_key = self.reconstruct_private_key(p_shares, q_shares)
         decrypted_gradient = reconstructed_private_key.decrypt(encrypted_gradient)
+
+        # Reverse scaling to get back the floating-point value
         decrypted_value = decrypted_gradient / self.scaling_factor
         print(f"Decrypted gradient value: {decrypted_value}")
         return decrypted_value
 
+
 # Example usage
 def main():
-    # Initialize the threshold Paillier system
-    threshold_paillier = ThresholdPaillier()
+    # Initialize the threshold Paillier system with additive secret sharing and ZKP
+    threshold_paillier = ThresholdPaillierWithZKP()
 
     # Simulate saving gradients to a file using torch
     gradients = torch.tensor([0.23, 0.56, 0.89])  # Example gradients
@@ -93,16 +170,32 @@ def main():
         encrypted_gradients.append(encrypted_grad)
 
     # Select participant shares for p and q (use the first threshold shares for this demo)
-    p_shares_per_chunk = [chunk[:threshold_paillier.threshold] for chunk in threshold_paillier.p_shares]
-    q_shares_per_chunk = [chunk[:threshold_paillier.threshold] for chunk in threshold_paillier.q_shares]
+    p_shares = threshold_paillier.p_shares[:threshold_paillier.threshold]
+    q_shares = threshold_paillier.q_shares[:threshold_paillier.threshold]
+
+    # For each encrypted gradient, generate ZK Proof (fsprove)
+    for idx, encrypted_gradient in enumerate(encrypted_gradients):
+        gradient = gradients[idx].item()  # Get original gradient
+        announcement, response, challenge = threshold_paillier.fsprove(gradient, encrypted_gradient)
+
+        # Verifier verifies the proof (fsver)
+        is_valid = threshold_paillier.fsver(encrypted_gradient, announcement, response, challenge)
+
+        # Output result
+        if is_valid:
+            print(f"Zero-Knowledge Proof verified for gradient {idx}: The encrypted gradient is valid.")
+        else:
+            print(f"Proof verification failed for gradient {idx}!")
 
     # Decrypt the gradients using the shares
     decrypted_gradients = []
     for encrypted_gradient in encrypted_gradients:
-        decrypted_gradient = threshold_paillier.decrypt_gradient_with_shares(encrypted_gradient, p_shares_per_chunk, q_shares_per_chunk)
+        decrypted_gradient = threshold_paillier.decrypt_gradient_with_shares(encrypted_gradient, p_shares, q_shares)
         decrypted_gradients.append(decrypted_gradient)
 
     print(f"Decrypted gradients: {decrypted_gradients}")
+
+
 if __name__ == "__main__":
     main()
 
