@@ -56,18 +56,28 @@ class AdditiveSecretSharing:
         return sum(shares) % self.prime
 
 
+
 class ThresholdPaillierWithZKP:
     def __init__(self, key_size=3072, scaling_factor=10**2, threshold=3, num_participants=5):
-        # Generate Paillier keypair
-        self.public_key, self.private_key = paillier.generate_paillier_keypair(n_length=key_size)
+        self.key_size = key_size
         self.scaling_factor = scaling_factor
         self.threshold = threshold
         self.num_participants = num_participants
         self.additive_ss = AdditiveSecretSharing()
 
+        # Initialize the Paillier keypair and distribute secret shares
+        self.generate_new_keypair()
+
+    def generate_new_keypair(self):
+        """Generate a new Paillier keypair and redistribute shares of p and q."""
+        # Generate Paillier keypair
+        self.public_key, self.private_key = paillier.generate_paillier_keypair(n_length=self.key_size)
+
         # Split the private key parts (p and q) using additive secret sharing
-        self.p_shares = self.additive_ss.split_secret(self.private_key.p, num_participants, threshold)
-        self.q_shares = self.additive_ss.split_secret(self.private_key.q, num_participants, threshold)
+        self.p_shares = self.additive_ss.split_secret(self.private_key.p, self.num_participants, self.threshold)
+        self.q_shares = self.additive_ss.split_secret(self.private_key.q, self.num_participants, self.threshold)
+
+        print("Generated new keypair and reshared p and q.")
 
     def reconstruct_private_key(self, p_shares, q_shares):
         """Reconstruct the private key from additive secret shares of p and q."""
@@ -158,43 +168,32 @@ def main():
     # Initialize the threshold Paillier system with additive secret sharing and ZKP
     threshold_paillier = ThresholdPaillierWithZKP()
 
-    # Simulate saving gradients to a file using torch
-    gradients = torch.tensor([0.23, 0.56, 0.89])  # Example gradients
-    file_path = "gradients.pth"
-    torch.save(gradients, file_path)
+    # Train model, encrypt, prove, decrypt, and repeat for multiple epochs
+    for epoch in range(5):  # Simulate multiple epochs
+        print(f"\n=== Epoch {epoch + 1} ===")
+        
+        # Simulate training and encrypting gradients
+        gradients = torch.tensor([0.23, 0.56, 0.89])  # Example gradients for this epoch
+        encrypted_gradients = [threshold_paillier.encrypt_gradient(grad.item()) for grad in gradients]
 
-    # Load and encrypt gradients from file
-    encrypted_gradients = []
-    for grad in gradients:
-        encrypted_grad = threshold_paillier.encrypt_gradient(grad.item())
-        encrypted_gradients.append(encrypted_grad)
+        # Generate proofs for each encrypted gradient
+        for idx, encrypted_gradient in enumerate(encrypted_gradients):
+            gradient = gradients[idx].item()  # Get original gradient
+            announcement, response, challenge = threshold_paillier.fsprove(gradient, encrypted_gradient)
 
-    # Select participant shares for p and q (use the first threshold shares for this demo)
-    p_shares = threshold_paillier.p_shares[:threshold_paillier.threshold]
-    q_shares = threshold_paillier.q_shares[:threshold_paillier.threshold]
+            # Verify the proof
+            is_valid = threshold_paillier.fsver(encrypted_gradient, announcement, response, challenge)
+            print(f"Proof verification for gradient {idx}: {'Valid' if is_valid else 'Invalid'}")
 
-    # For each encrypted gradient, generate ZK Proof (fsprove)
-    for idx, encrypted_gradient in enumerate(encrypted_gradients):
-        gradient = gradients[idx].item()  # Get original gradient
-        announcement, response, challenge = threshold_paillier.fsprove(gradient, encrypted_gradient)
-
-        # Verifier verifies the proof (fsver)
-        is_valid = threshold_paillier.fsver(encrypted_gradient, announcement, response, challenge)
-
-        # Output result
-        if is_valid:
-            print(f"Zero-Knowledge Proof verified for gradient {idx}: The encrypted gradient is valid.")
-        else:
-            print(f"Proof verification failed for gradient {idx}!")
-
-    # Decrypt the gradients using the shares
-    decrypted_gradients = []
-    for encrypted_gradient in encrypted_gradients:
-        decrypted_gradient = threshold_paillier.decrypt_gradient_with_shares(encrypted_gradient, p_shares, q_shares)
-        decrypted_gradients.append(decrypted_gradient)
-
-    print(f"Decrypted gradients: {decrypted_gradients}")
-
+        # Simulate decryption using secret shares
+        p_shares = threshold_paillier.p_shares[:threshold_paillier.threshold]
+        q_shares = threshold_paillier.q_shares[:threshold_paillier.threshold]
+        decrypted_gradients = [threshold_paillier.decrypt_gradient_with_shares(encrypted_gradient, p_shares, q_shares) for encrypted_gradient in encrypted_gradients]
+        
+        # Periodically regenerate the Paillier keypair (optional based on your requirement)
+        if (epoch + 1) % 3 == 0:  # Refresh keypair every 3 epochs
+            print("\nRefreshing Paillier keypair...")
+            threshold_paillier.generate_new_keypair()
 
 if __name__ == "__main__":
     main()
