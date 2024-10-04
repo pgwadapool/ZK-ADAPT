@@ -46,20 +46,22 @@ Please Refer to design_docs/workflow.md to understand how to create a workflow w
 In code directory
 1. **HydraInteraction.tla:** TLA+ of hydra interaction
 2. **ThresholdPallierZkp.tla :** TLA+ specification for encryption and ZKP
-3. **design.tla :** Mulltiparty training TLA+
-4. **zkp.tla:** TLA+ for ZKP
+3. **ThresholdNIZKP.tla** TLA+ specification for encryption and using Non-Interactibe ZKP
+4. **design.tla :** Mulltiparty training TLA+
+5. **zkp.tla:** TLA+ for ZKP
 
 
-5. **ThresholdPallierZkp.py:** This provides APIs and example of how to use Pallier Encryption and ZKP. In this additive secret sharing is used
-6. **hydra_messaging.py:** his provides APIs and example of how to interact with Hydra once its opened.
-7. **hydra_interaction.py :** Reduntant file while i was trying sync communication. Can be ignored.
-8. **storj_utils.py:** Utility to interact with Storj.
+6. **ThresholdPallierZkp.py:** This provides APIs and example of how to use Pallier Encryption and ZKP. In this additive secret sharing is used
+7. **ThresholdNIZKP.py** Same functionality as above, the proof is verified non-interactively
+8. **hydra_messaging.py:** his provides APIs and example of how to interact with Hydra once its opened.
+9. **hydra_interaction.py :** Reduntant file while i was trying sync communication. Can be ignored.
+10. **storj_utils.py:** Utility to interact with Storj.
 
-9. **mnist_n.py:** Bare Bone example to show how all pieces can be integrated. However for simplicity and reproducibility ZKP and Hydra are not enabled. Storj is enabled and you need to have Storj API key to run this
+11. **mnist_n.py:** Bare Bone example to show how all pieces can be integrated. However for simplicity and reproducibility ZKP and Hydra are not enabled. Storj is enabled and you need to have Storj API key to run this
 
 
-10. **dkg_helper.py:** This provides API for distributed key generation. This is needed if you want to override keys needed for ThresholdPallierZkp.
-11. **trusted_kg_helper.py:**  This provides API for Trusted key generation. This is needed if you want to override keys needed for ThresholdPallierZkp.
+12. **dkg_helper.py:** This provides API for distributed key generation. This is needed if you want to override keys needed for ThresholdPallierZkp.
+13. **trusted_kg_helper.py:**  This provides API for Trusted key generation. This is needed if you want to override keys needed for ThresholdPallierZkp.
 
 Use only one of the above or can stick to default.
 
