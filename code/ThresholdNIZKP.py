@@ -40,11 +40,13 @@ import torch
 
 class AdditiveSecretSharing:
     def __init__(self, prime=None):
+        # Choose a large prime for modular arithmetic
         self.prime = prime or (2 ** 3072 - 1)
 
     def split_secret(self, secret, num_shares, threshold):
         """Split a large integer `secret` into `num_shares` additive shares."""
         shares = [random.randint(0, self.prime - 1) for _ in range(threshold - 1)]
+        # Last share is chosen so that the sum of all shares modulo prime is equal to the secret
         last_share = (secret - sum(shares)) % self.prime
         shares.append(last_share)
         return shares
@@ -54,7 +56,8 @@ class AdditiveSecretSharing:
         return sum(shares) % self.prime
 
 
-class ThresholdPaillierNIZKP:
+
+class ThresholdPaillierWithZKP:
     def __init__(self, key_size=3072, scaling_factor=10**2, threshold=3, num_participants=5):
         self.key_size = key_size
         self.scaling_factor = scaling_factor
@@ -67,8 +70,10 @@ class ThresholdPaillierNIZKP:
 
     def generate_new_keypair(self):
         """Generate a new Paillier keypair and redistribute shares of p and q."""
+        # Generate Paillier keypair
         self.public_key, self.private_key = paillier.generate_paillier_keypair(n_length=self.key_size)
 
+        # Split the private key parts (p and q) using additive secret sharing
         self.p_shares = self.additive_ss.split_secret(self.private_key.p, self.num_participants, self.threshold)
         self.q_shares = self.additive_ss.split_secret(self.private_key.q, self.num_participants, self.threshold)
 
@@ -76,14 +81,18 @@ class ThresholdPaillierNIZKP:
 
     def reconstruct_private_key(self, p_shares, q_shares):
         """Reconstruct the private key from additive secret shares of p and q."""
+        # Reconstruct p and q from their respective shares
         reconstructed_p = self.additive_ss.recover_secret(p_shares)
         reconstructed_q = self.additive_ss.recover_secret(q_shares)
 
+        # Verify that n = p * q
         reconstructed_n = reconstructed_p * reconstructed_q
         if reconstructed_n != self.public_key.n:
             raise ValueError("Reconstructed p and q do not satisfy n = p * q.")
 
         print("Private key successfully reconstructed.")
+
+        # Return the reconstructed private key
         return paillier.PaillierPrivateKey(self.public_key, reconstructed_p, reconstructed_q)
 
     def encrypt_gradient(self, gradient):
@@ -96,7 +105,9 @@ class ThresholdPaillierNIZKP:
 
     def fsprove(self, gradient, encrypted_gradient):
         """Generate a Zero-Knowledge Proof for an encrypted gradient."""
+        # Scale the gradient
         scaled_gradient = int(gradient * self.scaling_factor)
+        # Generate a smaller random value for the announcement step
         a1 = random.randint(1, 10**6)
 
         # Announcement (encrypting the random value a1)
@@ -108,52 +119,44 @@ class ThresholdPaillierNIZKP:
         # Response: r = a1 + challenge * scaled_gradient
         response = a1 + challenge * scaled_gradient
 
-
+        print(f"Prover Generated: a1 = {a1}, challenge = {challenge}, response = {response}")
         return announcement, response, challenge
 
     @staticmethod
     def generate_hash(value):
         """Generate a hash for the Zero-Knowledge Proof challenge."""
-        return int(hashlib.sha256(str(value).encode()).hexdigest(), 16) % (10**6)
-
+        return int(hashlib.sha256(str(value).encode()).hexdigest(), 16) % (10**6)  # Limiting the size of the challenge
 
     def fsver(self, encrypted_gradient, announcement, response, challenge):
-        decrypted_announcement = self.private_key.decrypt(announcement)
+         # Decrypt the encrypted gradient
+        decrypted_gradient = self.private_key.decrypt(encrypted_gradient)
 
+        # Reverse scaling to get back the floating-point number
+        decrypted_gradient_float = decrypted_gradient / self.scaling_factor
+
+        # Verifier computes the expected challenge again
         expected_challenge = self.generate_hash(str(encrypted_gradient.ciphertext()) + str(announcement.ciphertext()))
 
+        # Check if the challenges match
         if expected_challenge != challenge:
             print(f"Challenge mismatch! Expected: {expected_challenge}, Got: {challenge}")
             return False
 
-        # Here we derive the scaled_gradient based on the properties of the encrypted_gradient
-        # We know that encrypted_gradient is encrypted(scaled_gradient), we use the properties of Paillier
-        # Since we do not decrypt, we need to calculate scaled_gradient from response and announcement
-
-        # The response we received from the prover is: response = a1 + challenge * scaled_gradient
-        # We rearrange this to find scaled_gradient:
-        # scaled_gradient = (response - a1) / challenge
-
-        # Note: We need to ensure challenge is not zero to avoid division by zero
-        if challenge == 0:
-            print("Challenge is zero, cannot derive scaled_gradient.")
+        # Verify that the mathematical relationship holds: response = a1 + challenge * scaled_gradient
+        if response - challenge * decrypted_gradient == self.private_key.decrypt(announcement):
+            print("ZK Proof successfully verified.")
+            return True
+        else:
+            print("ZK Proof verification failed.")
             return False
-
-        expected_scaled_gradient = (response - decrypted_announcement) // challenge
-
-        # Validate if expected scaled gradient matches the properties of the encrypted gradient
-        if expected_scaled_gradient < 0:
-            print("Invalid expected scaled gradient.")
-            return False
-
-        print("ZK Proof successfully verified.")
-        return True
 
     def decrypt_gradient_with_shares(self, encrypted_gradient, p_shares, q_shares):
         """Decrypt an encrypted gradient using shares of p and q."""
+        # Reconstruct the private key from the provided shares
         reconstructed_private_key = self.reconstruct_private_key(p_shares, q_shares)
         decrypted_gradient = reconstructed_private_key.decrypt(encrypted_gradient)
 
+        # Reverse scaling to get back the floating-point value
         decrypted_value = decrypted_gradient / self.scaling_factor
         print(f"Decrypted gradient value: {decrypted_value}")
         return decrypted_value
@@ -161,8 +164,10 @@ class ThresholdPaillierNIZKP:
 
 # Example usage
 def main():
-    threshold_paillier = ThresholdPaillierNIZKP()
+    # Initialize the threshold Paillier system with additive secret sharing and ZKP
+    threshold_paillier = ThresholdPaillierWithZKP()
 
+    # Train model, encrypt, prove, decrypt, and repeat for multiple epochs
     for epoch in range(5):  # Simulate multiple epochs
         print(f"\n=== Epoch {epoch + 1} ===")
         
@@ -175,7 +180,7 @@ def main():
             gradient = gradients[idx].item()  # Get original gradient
             announcement, response, challenge = threshold_paillier.fsprove(gradient, encrypted_gradient)
 
-            # Verify the proof without decrypting the encrypted gradient
+            # Verify the proof
             is_valid = threshold_paillier.fsver(encrypted_gradient, announcement, response, challenge)
             print(f"Proof verification for gradient {idx}: {'Valid' if is_valid else 'Invalid'}")
 
@@ -191,6 +196,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
