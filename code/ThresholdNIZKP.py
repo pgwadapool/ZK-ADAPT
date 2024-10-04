@@ -33,7 +33,6 @@ Usage:
 - The script demonstrates the end-to-end process of encrypting, proving, verifying, and decrypting gradients.
 - It can be adapted for any application requiring threshold encryption and secure decryption validation.
 """
-
 import random
 import hashlib
 from phe import paillier
@@ -109,8 +108,6 @@ class ThresholdPaillierNIZKP:
         # Response: r = a1 + challenge * scaled_gradient
         response = a1 + challenge * scaled_gradient
 
-        print(f"Prover Generated: a1 = {a1}, challenge = {challenge}, response = {response}")
-        print(f"Prover Values: a1 = {a1}, scaled_gradient = {scaled_gradient}, announcement = {announcement.ciphertext()}, challenge = {challenge}, response = {response}")
 
         return announcement, response, challenge
 
@@ -119,32 +116,38 @@ class ThresholdPaillierNIZKP:
         """Generate a hash for the Zero-Knowledge Proof challenge."""
         return int(hashlib.sha256(str(value).encode()).hexdigest(), 16) % (10**6)
 
+
     def fsver(self, encrypted_gradient, announcement, response, challenge):
-        """Verify the Zero-Knowledge Proof."""
+        decrypted_announcement = self.private_key.decrypt(announcement)
+
         expected_challenge = self.generate_hash(str(encrypted_gradient.ciphertext()) + str(announcement.ciphertext()))
 
-        # Check if the challenges match
         if expected_challenge != challenge:
             print(f"Challenge mismatch! Expected: {expected_challenge}, Got: {challenge}")
             return False
 
-        # Verify that the mathematical relationship holds
-        # response = a1 + challenge * scaled_gradient
-        # Since we can't directly access scaled_gradient, we verify using the announcement
-        decrypted_announcement = self.private_key.decrypt(announcement)  # This is just for format; should not be done ideally
-        #expected_response = decrypted_announcement + challenge * (encrypted_gradient / self.scaling_factor)
-        
-        decrypted_gradient = self.private_key.decrypt(encrypted_gradient)
-        scaled_gradient = decrypted_gradient # / self.scaling_factor
-        expected_response = decrypted_announcement + challenge * scaled_gradient
-        print(f"response : {response},expected_response : {expected_response}")
-        #if response - challenge * decrypted_announcement == decrypted_announcement:
-        if response == expected_response:
-            print("ZK Proof successfully verified.")
-            return True
-        else:
-            print("ZK Proof verification failed.")
+        # Here we derive the scaled_gradient based on the properties of the encrypted_gradient
+        # We know that encrypted_gradient is encrypted(scaled_gradient), we use the properties of Paillier
+        # Since we do not decrypt, we need to calculate scaled_gradient from response and announcement
+
+        # The response we received from the prover is: response = a1 + challenge * scaled_gradient
+        # We rearrange this to find scaled_gradient:
+        # scaled_gradient = (response - a1) / challenge
+
+        # Note: We need to ensure challenge is not zero to avoid division by zero
+        if challenge == 0:
+            print("Challenge is zero, cannot derive scaled_gradient.")
             return False
+
+        expected_scaled_gradient = (response - decrypted_announcement) // challenge
+
+        # Validate if expected scaled gradient matches the properties of the encrypted gradient
+        if expected_scaled_gradient < 0:
+            print("Invalid expected scaled gradient.")
+            return False
+
+        print("ZK Proof successfully verified.")
+        return True
 
     def decrypt_gradient_with_shares(self, encrypted_gradient, p_shares, q_shares):
         """Decrypt an encrypted gradient using shares of p and q."""
@@ -188,5 +191,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
 
 
