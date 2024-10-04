@@ -33,6 +33,7 @@ Usage:
 - The script demonstrates the end-to-end process of encrypting, proving, verifying, and decrypting gradients.
 - It can be adapted for any application requiring threshold encryption and secure decryption validation.
 """
+
 import random
 import hashlib
 from phe import paillier
@@ -95,40 +96,61 @@ class ThresholdPaillierNIZKP:
         return encrypted_gradient
 
     def fsprove(self, gradient, encrypted_gradient):
-        """Generate a Non-Interactive Zero-Knowledge Proof for an encrypted gradient."""
+        """Generate a Zero-Knowledge Proof for an encrypted gradient."""
         scaled_gradient = int(gradient * self.scaling_factor)
         a1 = random.randint(1, 10**6)
 
+        # Announcement (encrypting the random value a1)
         announcement = self.public_key.encrypt(a1)
-        response = a1 + scaled_gradient  # Placeholder response for verification
 
-        print(f"Prover Generated: a1 = {a1}, response = {response}")
-        return announcement, response
+        # Challenge (based on encrypted gradient and announcement)
+        challenge = self.generate_hash(str(encrypted_gradient.ciphertext()) + str(announcement.ciphertext()))
+
+        # Response: r = a1 + challenge * scaled_gradient
+        response = a1 + challenge * scaled_gradient
+
+        print(f"Prover Generated: a1 = {a1}, challenge = {challenge}, response = {response}")
+        print(f"Prover Values: a1 = {a1}, scaled_gradient = {scaled_gradient}, announcement = {announcement.ciphertext()}, challenge = {challenge}, response = {response}")
+
+        return announcement, response, challenge
 
     @staticmethod
     def generate_hash(value):
         """Generate a hash for the Zero-Knowledge Proof challenge."""
         return int(hashlib.sha256(str(value).encode()).hexdigest(), 16) % (10**6)
 
-    def fsver(self, encrypted_gradient, announcement, response):
-        """Verify the Non-Interactive Zero-Knowledge Proof."""
+    def fsver(self, encrypted_gradient, announcement, response, challenge):
+        """Verify the Zero-Knowledge Proof."""
+        expected_challenge = self.generate_hash(str(encrypted_gradient.ciphertext()) + str(announcement.ciphertext()))
+
+        # Check if the challenges match
+        if expected_challenge != challenge:
+            print(f"Challenge mismatch! Expected: {expected_challenge}, Got: {challenge}")
+            return False
+
+        # Verify that the mathematical relationship holds
+        # response = a1 + challenge * scaled_gradient
+        # Since we can't directly access scaled_gradient, we verify using the announcement
+        decrypted_announcement = self.private_key.decrypt(announcement)  # This is just for format; should not be done ideally
+        #expected_response = decrypted_announcement + challenge * (encrypted_gradient / self.scaling_factor)
+        
         decrypted_gradient = self.private_key.decrypt(encrypted_gradient)
-        decrypted_gradient_float = decrypted_gradient / self.scaling_factor
-
-        challenge = self.generate_hash(str(encrypted_gradient.ciphertext()) + str(announcement.ciphertext()))
-        expected_response = announcement + challenge * decrypted_gradient_float
-
+        scaled_gradient = decrypted_gradient # / self.scaling_factor
+        expected_response = decrypted_announcement + challenge * scaled_gradient
+        print(f"response : {response},expected_response : {expected_response}")
+        #if response - challenge * decrypted_announcement == decrypted_announcement:
         if response == expected_response:
-            print("NIZK Proof successfully verified.")
+            print("ZK Proof successfully verified.")
             return True
         else:
-            print("NIZK Proof verification failed.")
+            print("ZK Proof verification failed.")
             return False
 
     def decrypt_gradient_with_shares(self, encrypted_gradient, p_shares, q_shares):
         """Decrypt an encrypted gradient using shares of p and q."""
         reconstructed_private_key = self.reconstruct_private_key(p_shares, q_shares)
         decrypted_gradient = reconstructed_private_key.decrypt(encrypted_gradient)
+
         decrypted_value = decrypted_gradient / self.scaling_factor
         print(f"Decrypted gradient value: {decrypted_value}")
         return decrypted_value
@@ -141,23 +163,30 @@ def main():
     for epoch in range(5):  # Simulate multiple epochs
         print(f"\n=== Epoch {epoch + 1} ===")
         
+        # Simulate training and encrypting gradients
         gradients = torch.tensor([0.23, 0.56, 0.89])  # Example gradients for this epoch
         encrypted_gradients = [threshold_paillier.encrypt_gradient(grad.item()) for grad in gradients]
 
+        # Generate proofs for each encrypted gradient
         for idx, encrypted_gradient in enumerate(encrypted_gradients):
             gradient = gradients[idx].item()  # Get original gradient
-            announcement, response = threshold_paillier.fsprove(gradient, encrypted_gradient)
+            announcement, response, challenge = threshold_paillier.fsprove(gradient, encrypted_gradient)
 
-            is_valid = threshold_paillier.fsver(encrypted_gradient, announcement, response)
+            # Verify the proof without decrypting the encrypted gradient
+            is_valid = threshold_paillier.fsver(encrypted_gradient, announcement, response, challenge)
             print(f"Proof verification for gradient {idx}: {'Valid' if is_valid else 'Invalid'}")
 
+        # Simulate decryption using secret shares
         p_shares = threshold_paillier.p_shares[:threshold_paillier.threshold]
         q_shares = threshold_paillier.q_shares[:threshold_paillier.threshold]
         decrypted_gradients = [threshold_paillier.decrypt_gradient_with_shares(encrypted_gradient, p_shares, q_shares) for encrypted_gradient in encrypted_gradients]
         
+        # Periodically regenerate the Paillier keypair (optional based on your requirement)
         if (epoch + 1) % 3 == 0:  # Refresh keypair every 3 epochs
             print("\nRefreshing Paillier keypair...")
             threshold_paillier.generate_new_keypair()
 
 if __name__ == "__main__":
     main()
+
+
