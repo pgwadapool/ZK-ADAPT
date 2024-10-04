@@ -128,8 +128,7 @@ class ThresholdPaillierWithZKP:
         return int(hashlib.sha256(str(value).encode()).hexdigest(), 16) % (10**6)  # Limiting the size of the challenge
 
     def fsver(self, encrypted_gradient, announcement, response, challenge):
-        """Verify the Zero-Knowledge Proof."""
-        # Decrypt the encrypted gradient
+         # Decrypt the encrypted gradient
         decrypted_gradient = self.private_key.decrypt(encrypted_gradient)
 
         # Reverse scaling to get back the floating-point number
