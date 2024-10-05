@@ -35,7 +35,7 @@ MY_STORJ_UPLOAD_PATH
 MY_ENCRYPTION_PASSPHRASE
 
 # To run the sample example mnist (without hydra and encryption)
-cd code
+cd code/blkchain
 python3 mnist_n.py
 ```
 
