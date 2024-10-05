@@ -53,7 +53,7 @@ In code directory
 
 6. **ThresholdPallierZkp.py:** This provides APIs and example of how to use Pallier Encryption and ZKP. In this additive secret sharing is used
 7. **ThresholdNIZKP.py** Same functionality as above, the proof is verified non-interactively
-8. **tno_pallier_nizkp.py** This is using Pallier key generation and encrypt decrypt from TNO library https://pypi.org/project/tno.mpc.encryption-schemes.paillier/1.1.2/
+8. **tno_pallier_nizkp.py** This is using Pallier key generation and encrypt decrypt from TNO library pip install tno.mpc.encryption-schemes.paillier
 9. **hydra_messaging.py:** his provides APIs and example of how to interact with Hydra once its opened.
 10. **hydra_interaction.py :** Reduntant file while i was trying sync communication. Can be ignored.
 11. **storj_utils.py:** Utility to interact with Storj.
