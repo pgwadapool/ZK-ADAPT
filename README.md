@@ -53,15 +53,16 @@ In code directory
 
 6. **ThresholdPallierZkp.py:** This provides APIs and example of how to use Pallier Encryption and ZKP. In this additive secret sharing is used
 7. **ThresholdNIZKP.py** Same functionality as above, the proof is verified non-interactively
-8. **hydra_messaging.py:** his provides APIs and example of how to interact with Hydra once its opened.
-9. **hydra_interaction.py :** Reduntant file while i was trying sync communication. Can be ignored.
-10. **storj_utils.py:** Utility to interact with Storj.
+8. **tno_pallier_nizkp.py** This is using Pallier key generation and encrypt decrypt from TNO library https://pypi.org/project/tno.mpc.encryption-schemes.paillier/1.1.2/
+9. **hydra_messaging.py:** his provides APIs and example of how to interact with Hydra once its opened.
+10. **hydra_interaction.py :** Reduntant file while i was trying sync communication. Can be ignored.
+11. **storj_utils.py:** Utility to interact with Storj.
 
-11. **mnist_n.py:** Bare Bone example to show how all pieces can be integrated. However for simplicity and reproducibility ZKP and Hydra are not enabled. Storj is enabled and you need to have Storj API key to run this
+12. **mnist_n.py:** Bare Bone example to show how all pieces can be integrated. However for simplicity and reproducibility ZKP and Hydra are not enabled. Storj is enabled and you need to have Storj API key to run this
 
 
-12. **dkg_helper.py:** This provides API for distributed key generation. This is needed if you want to override keys needed for ThresholdPallierZkp.
-13. **trusted_kg_helper.py:**  This provides API for Trusted key generation. This is needed if you want to override keys needed for ThresholdPallierZkp.
+13. **dkg_helper.py:** This provides API for distributed key generation. This is needed if you want to override keys needed for ThresholdPallierZkp.
+14. **trusted_kg_helper.py:**  This provides API for Trusted key generation. This is needed if you want to override keys needed for ThresholdPallierZkp.
 
 Use only one of the above or can stick to default.
 
