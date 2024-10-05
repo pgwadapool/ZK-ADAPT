@@ -43,7 +43,7 @@ Please Refer to design_docs/workflow.md to understand how to create a workflow w
 
 ## File List
 
-In code directory
+In code/tla_plus directory
 1. **HydraInteraction.tla:** TLA+ of hydra interaction
 2. **ThresholdPallierZkp.tla :** TLA+ specification for encryption and ZKP
 3. **ThresholdNIZKP.tla** TLA+ specification for encryption and using Non-Interactibe ZKP
@@ -65,7 +65,7 @@ In code directory
 **Example**
 1. **mnist_n.py:** Bare Bone example to show how all pieces can be integrated. However for simplicity and reproducibility ZKP and Hydra are not enabled. Storj is enabled and you need to have Storj API key to run this
 
-**Basic codes. These can be ignored**
+**Basic experimental codes. These can be ignored**
 1. **ThresholdNIZKP.py** Same functionality as above, the proof is verified non-interactively.
 2. **hydra_interaction.py :** Reduntant file while i was trying sync communication. Can be ignored.
 3. **dkg_helper.py:** This provides API for distributed key generation. This is needed if you want to override keys needed for ThresholdPallierZkp.
