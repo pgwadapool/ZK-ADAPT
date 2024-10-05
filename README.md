@@ -50,24 +50,34 @@ In code directory
 4. **design.tla :** Mulltiparty training TLA+
 5. **zkp.tla:** TLA+ for ZKP
 
+**Blockchain Communication**
+1. **hydra_messaging.py:** his provides APIs and example of how to interact with Hydra once its opened.
 
-6. **ThresholdPallierZkp.py:** This provides APIs and example of how to use Pallier Encryption and ZKP. In this additive secret sharing is used
-7. **ThresholdNIZKP.py** Same functionality as above, the proof is verified non-interactively
-8. **tno_pallier_nizkp.py** This is using Pallier key generation and encrypt decrypt from TNO library pip install tno.mpc.encryption-schemes.paillier
-9. **hydra_messaging.py:** his provides APIs and example of how to interact with Hydra once its opened.
-10. **hydra_interaction.py :** Reduntant file while i was trying sync communication. Can be ignored.
-11. **storj_utils.py:** Utility to interact with Storj.
+**Storage Utils**
+1. **storj_utils.py:** Utility to interact with Storj.
 
-12. **mnist_n.py:** Bare Bone example to show how all pieces can be integrated. However for simplicity and reproducibility ZKP and Hydra are not enabled. Storj is enabled and you need to have Storj API key to run this
+**Cryptography**
+1. **tno_pallier_nizkp.py** Same as above but using third party key generation.This is using Pallier key generation and encrypt decrypt from TNO library pip install tno.mpc.encryption-schemes.paillier
+2. **ThresholdPallierZkp.py:** This provides APIs and example of how to use Pallier Encryption and ZKP. In this additive secret sharing is used
+3. **tno_pallier_nizkp is preferred.** ThresholdPallierZkp is for example understanding. If production quality is needed use TNO MPC for key generation also. https://github.com/TNO-MPC/protocols.distributed_keygen
 
 
-13. **dkg_helper.py:** This provides API for distributed key generation. This is needed if you want to override keys needed for ThresholdPallierZkp.
-14. **trusted_kg_helper.py:**  This provides API for Trusted key generation. This is needed if you want to override keys needed for ThresholdPallierZkp.
+**Example**
+1. **mnist_n.py:** Bare Bone example to show how all pieces can be integrated. However for simplicity and reproducibility ZKP and Hydra are not enabled. Storj is enabled and you need to have Storj API key to run this
 
-Use only one of the above or can stick to default.
+**Basic codes. These can be ignored**
+1. **ThresholdNIZKP.py** Same functionality as above, the proof is verified non-interactively.
+2. **hydra_interaction.py :** Reduntant file while i was trying sync communication. Can be ignored.
+3. **dkg_helper.py:** This provides API for distributed key generation. This is needed if you want to override keys needed for ThresholdPallierZkp.
+4. **trusted_kg_helper.py:**  This provides API for Trusted key generation. This is needed if you want to override keys needed for ThresholdPallierZkp.
+5. **thresholdPallier_shamir.py:** This uses Shamir secret sharing instead of Additive secret sharing. Rest implementation is same as ThresholdPallierZkp. However this can have issues because of python setup
+6. **zkp.py :** Standalone ZKP implemetation if needed without any encryption
 
-12. **thresholdPallier_shamir.py:** This uses Shamir secret sharing instead of Additive secret sharing. Rest implementation is same as ThresholdPallierZkp. However this can have issues because of python setup
-13. **zkp.py :** Standalone ZKP implemetation if needed without any encryption
+
+ 
+
+
+
 
 
 **As you can see there is tremendous flexibility.**
