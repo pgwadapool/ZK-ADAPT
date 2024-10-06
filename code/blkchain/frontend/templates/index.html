@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HydraClient GUI</title>
+</head>
+<body>
+    <h1>HydraClient Control Panel</h1>
+
+    <h2>Initialize HydraClient</h2>
+    <form id="initialize-form" method="POST" action="/initialize">
+        <label for="address_file">Address File:</label>
+        <input type="text" id="address_file" name="address_file" required><br><br>
+
+        <label for="output_address_file">Output Address File:</label>
+        <input type="text" id="output_address_file" name="output_address_file" required><br><br>
+
+        <label for="lovelace_value">Lovelace Value:</label>
+        <input type="number" id="lovelace_value" name="lovelace_value" required><br><br>
+
+        <button type="submit">Initialize</button>
+    </form>
+
+    <h2>Send Command</h2>
+    <form id="command-form" method="POST" action="/send_command">
+        <label for="command">Command:</label>
+        <input type="text" id="command" name="command" required><br><br>
+
+        <label for="payload">Payload (JSON):</label>
+        <textarea id="payload" name="payload"></textarea><br><br>
+
+        <button type="submit">Send Command</button>
+    </form>
+
+    <div id="response"></div>
+
+    <script>
+        document.getElementById('initialize-form').onsubmit = async (event) => {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const response = await fetch(event.target.action, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+            document.getElementById('response').innerText = JSON.stringify(data);
+        };
+
+        document.getElementById('command-form').onsubmit = async (event) => {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const response = await fetch(event.target.action, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+            document.getElementById('response').innerText = JSON.stringify(data);
+        };
+    </script>
+</body>
+</html>
