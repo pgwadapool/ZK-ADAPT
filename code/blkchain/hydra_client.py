@@ -27,7 +27,7 @@ async def main():
     await client.run()
 """
 class HydraClient:
-    def __init__(self, url: str = "http://127.0.0.1:4001", address_file: str, output_address_file: str, lovelace_value: int, threshold: int):
+    def __init__(self, address_file: str, output_address_file: str, lovelace_value: int, threshold: int,url: str = "http://127.0.0.1:4001"):
         self.url = url
         self.address_file = address_file
         self.output_address_file = output_address_file
