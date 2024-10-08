@@ -1,0 +1,143 @@
+{
+  "preamble": {
+    "title": "my-org/escrow_basic",
+    "description": "Aiken contracts for project 'my-org/escrow_basic'",
+    "version": "0.0.0",
+    "plutusVersion": "v3",
+    "compiler": {
+      "name": "Aiken",
+      "version": "v1.1.4+79d0e45"
+    },
+    "license": "Apache-2.0"
+  },
+  "validators": [
+    {
+      "title": "escrow_basic.escrow_card.spend",
+      "datum": {
+        "title": "_d",
+        "schema": {
+          "$ref": "#/definitions/Data"
+        }
+      },
+      "redeemer": {
+        "title": "_r",
+        "schema": {
+          "$ref": "#/definitions/Data"
+        }
+      },
+      "parameters": [
+        {
+          "title": "token_name",
+          "schema": {
+            "$ref": "#/definitions/ByteArray"
+          }
+        },
+        {
+          "title": "utxo_ref",
+          "schema": {
+            "$ref": "#/definitions/cardano~1transaction~1OutputReference"
+          }
+        }
+      ],
+      "compiledCode": "5902750101003232323232323223222533300532323232323232323232532333010300500613232323232325333016300730173754002264a66602e601860306ea80044c8c94ccc070c07c0084c94ccc068cdc39bad301c002480044cdc780080c0a50375c60340022c603a002660160066eb8c070c064dd50008b1804980c1baa3009301837546036603860306ea8c06cc060dd50008b198039bac301a00223375e601260306ea8004014dd5980c980d180d180d180d000980a9baa00d3017301800230160013012375400e2a666020600200c2646464a66602660080022a66602c602a6ea802c540085854ccc04cc02000454ccc058c054dd50058a8010b0b18099baa00a1323232325333018301b00213232533301730083018375401e2a66602e601060306ea8cc0240148cdd79805980d1baa00101515333017300c00113371e00402a29405854ccc05ccdc3800a4002266e3c0080545281bad3018002375c602c0022c60320026600e6eacc060c064c064c064c06400800cdd6180b80098099baa00b375c602a60246ea801c58dc3a400044646600200200644a66602a0022980103d87a8000132325333014300500213374a90001980c00125eb804cc010010004c064008c05c0048c04c00488c94ccc03cc010c040dd50008a5eb7bdb1804dd5980a18089baa001323300100100322533301300114c103d87a800013232323253330143372200e0042a66602866e3c01c0084cdd2a4000660306e980052f5c02980103d87a80001330060060033756602a0066eb8c04c008c05c008c054004dc3a400460166ea8004c038c03c008c034004c034008c02c004c01cdd50008a4c26cac6eb80055cd2ab9d5573caae7d5d02ba15745",
+      "hash": "e8498b6e37da9406494b7512fab69256e7c25204130909fae35822a2"
+    },
+    {
+      "title": "escrow_basic.escrow_card.mint",
+      "redeemer": {
+        "title": "rdmr",
+        "schema": {
+          "$ref": "#/definitions/escrow_basic~1Action"
+        }
+      },
+      "parameters": [
+        {
+          "title": "token_name",
+          "schema": {
+            "$ref": "#/definitions/ByteArray"
+          }
+        },
+        {
+          "title": "utxo_ref",
+          "schema": {
+            "$ref": "#/definitions/cardano~1transaction~1OutputReference"
+          }
+        }
+      ],
+      "compiledCode": "5902750101003232323232323223222533300532323232323232323232532333010300500613232323232325333016300730173754002264a66602e601860306ea80044c8c94ccc070c07c0084c94ccc068cdc39bad301c002480044cdc780080c0a50375c60340022c603a002660160066eb8c070c064dd50008b1804980c1baa3009301837546036603860306ea8c06cc060dd50008b198039bac301a00223375e601260306ea8004014dd5980c980d180d180d180d000980a9baa00d3017301800230160013012375400e2a666020600200c2646464a66602660080022a66602c602a6ea802c540085854ccc04cc02000454ccc058c054dd50058a8010b0b18099baa00a1323232325333018301b00213232533301730083018375401e2a66602e601060306ea8cc0240148cdd79805980d1baa00101515333017300c00113371e00402a29405854ccc05ccdc3800a4002266e3c0080545281bad3018002375c602c0022c60320026600e6eacc060c064c064c064c06400800cdd6180b80098099baa00b375c602a60246ea801c58dc3a400044646600200200644a66602a0022980103d87a8000132325333014300500213374a90001980c00125eb804cc010010004c064008c05c0048c04c00488c94ccc03cc010c040dd50008a5eb7bdb1804dd5980a18089baa001323300100100322533301300114c103d87a800013232323253330143372200e0042a66602866e3c01c0084cdd2a4000660306e980052f5c02980103d87a80001330060060033756602a0066eb8c04c008c05c008c054004dc3a400460166ea8004c038c03c008c034004c034008c02c004c01cdd50008a4c26cac6eb80055cd2ab9d5573caae7d5d02ba15745",
+      "hash": "e8498b6e37da9406494b7512fab69256e7c25204130909fae35822a2"
+    },
+    {
+      "title": "escrow_basic.escrow_card.else",
+      "redeemer": {
+        "schema": {}
+      },
+      "parameters": [
+        {
+          "title": "token_name",
+          "schema": {
+            "$ref": "#/definitions/ByteArray"
+          }
+        },
+        {
+          "title": "utxo_ref",
+          "schema": {
+            "$ref": "#/definitions/cardano~1transaction~1OutputReference"
+          }
+        }
+      ],
+      "compiledCode": "5902750101003232323232323223222533300532323232323232323232532333010300500613232323232325333016300730173754002264a66602e601860306ea80044c8c94ccc070c07c0084c94ccc068cdc39bad301c002480044cdc780080c0a50375c60340022c603a002660160066eb8c070c064dd50008b1804980c1baa3009301837546036603860306ea8c06cc060dd50008b198039bac301a00223375e601260306ea8004014dd5980c980d180d180d180d000980a9baa00d3017301800230160013012375400e2a666020600200c2646464a66602660080022a66602c602a6ea802c540085854ccc04cc02000454ccc058c054dd50058a8010b0b18099baa00a1323232325333018301b00213232533301730083018375401e2a66602e601060306ea8cc0240148cdd79805980d1baa00101515333017300c00113371e00402a29405854ccc05ccdc3800a4002266e3c0080545281bad3018002375c602c0022c60320026600e6eacc060c064c064c064c06400800cdd6180b80098099baa00b375c602a60246ea801c58dc3a400044646600200200644a66602a0022980103d87a8000132325333014300500213374a90001980c00125eb804cc010010004c064008c05c0048c04c00488c94ccc03cc010c040dd50008a5eb7bdb1804dd5980a18089baa001323300100100322533301300114c103d87a800013232323253330143372200e0042a66602866e3c01c0084cdd2a4000660306e980052f5c02980103d87a80001330060060033756602a0066eb8c04c008c05c008c054004dc3a400460166ea8004c038c03c008c034004c034008c02c004c01cdd50008a4c26cac6eb80055cd2ab9d5573caae7d5d02ba15745",
+      "hash": "e8498b6e37da9406494b7512fab69256e7c25204130909fae35822a2"
+    }
+  ],
+  "definitions": {
+    "ByteArray": {
+      "dataType": "bytes"
+    },
+    "Data": {
+      "title": "Data",
+      "description": "Any Plutus data."
+    },
+    "Int": {
+      "dataType": "integer"
+    },
+    "cardano/transaction/OutputReference": {
+      "title": "OutputReference",
+      "description": "An `OutputReference` is a unique reference to an output on-chain. The `output_index`\n corresponds to the position in the output list of the transaction (identified by its id)\n that produced that output",
+      "anyOf": [
+        {
+          "title": "OutputReference",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "title": "transaction_id",
+              "$ref": "#/definitions/ByteArray"
+            },
+            {
+              "title": "output_index",
+              "$ref": "#/definitions/Int"
+            }
+          ]
+        }
+      ]
+    },
+    "escrow_basic/Action": {
+      "title": "Action",
+      "anyOf": [
+        {
+          "title": "Lock",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": []
+        },
+        {
+          "title": "Redeem",
+          "dataType": "constructor",
+          "index": 1,
+          "fields": []
+        }
+      ]
+    }
+  }
+}
