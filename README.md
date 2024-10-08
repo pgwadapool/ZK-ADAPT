@@ -53,6 +53,9 @@ In code/tla_plus directory
 **Blockchain Communication**
 1. **hydra_messaging.py:** his provides APIs and example of how to interact with Hydra once its opened.
 
+**Blockchain Contract**
+1. **plutus.json:** Compiled onchain code for basic escrow.
+
 **Storage Utils**
 1. **storj_utils.py:** Utility to interact with Storj.
 
