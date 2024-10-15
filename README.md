@@ -1,7 +1,7 @@
-# qLORADecentralizedML
+# ZK-ADAPT ZK based Adaptive Decestralized Fine-Tuning
 
 ## Overview
-qLORADecentralizedML is a pioneering project that integrates Quantized Low-Rank Approximation (qLORA) with decentralized machine learning, focusing on the efficient and private training of large language models (LLM). This initiative aims to enhance computational efficiency, ensure data privacy, and facilitate secure communication in distributed learning environments.
+ZK-ADAPT is a pioneering project that integrates Quantized Low-Rank Approximation (qLORA) with decentralized machine learning, focusing on the efficient and private training of large language models (LLM). This initiative aims to enhance computational efficiency, ensure data privacy, and facilitate secure communication in distributed learning environments.
 
 ## Key Features
 - **qLORA Integration:** Utilizes qLORA for optimizing neural network training, reducing computational complexity in Distributed learning.
